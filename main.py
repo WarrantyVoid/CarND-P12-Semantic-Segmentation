@@ -136,8 +136,10 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
 
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=correct_label, logits=logits))
-    train_op = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy_loss)
-    return logits, train_op, cross_entropy_loss
+    l2_loss = sum(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES))
+    loss = cross_entropy_loss + l2_loss
+    train_op = tf.train.AdamOptimizer(learning_rate).minimize(loss)
+    return logits, train_op, loss
 
 
 tests.test_optimize(optimize)
@@ -177,7 +179,7 @@ tests.test_train_nn(train_nn)
 def run():
     num_classes = 2
     image_shape = (160, 576)
-    epochs = 50
+    epochs = 15
     batch_size = 10
     data_dir = './data'
     runs_dir = './runs'
